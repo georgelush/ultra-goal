@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ultra Goal"
+  short_description: "Audit, visualize, and debate goals safely"
+  default_prompt: "Use $ultra-goal to audit project reality, visualize architecture and applicable UI, debate this goal, and prepare implementation. Do not implement until you ask me an explicit authorization question and I give a clear affirmative (da/go/aproba/start implement)."
