@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "ultra-goal",
+  "description": "Plan, audit, debate, and persist complex multi-session goals across Claude, Codex, Grok, or other agents via project-local .ultra-goal/ Markdown handoff files.",
+  "owner": {
+    "name": "George Rusu",
+    "url": "https://github.com/georgelush"
+  },
+  "plugins": [
+    {
+      "name": "ultra-goal",
+      "description": "Durable goal state on disk, a mechanical authorization gate, and cross-provider handoff. Evidence over claims.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

@@ -64,24 +64,48 @@ your-project/
 
 ## Install
 
-### Claude Code
+### Claude Code — plugin (recommended)
+
+```text
+/plugin marketplace add georgelush/ultra-goal
+/plugin install ultra-goal@ultra-goal
+```
+
+This installs the skill **and wires the enforcement hook automatically**: while
+a project's `.ultra-goal/state.md` says `authorized_scope: none`, Edit/Write
+outside `.ultra-goal/` is mechanically blocked. The hook is inert in projects
+without `.ultra-goal/`. (Honest limits: Edit/Write tools only — see
+[`hooks/README.md`](hooks/README.md).)
+
+### Claude Code — manual (clone + copy)
+
+macOS / Linux:
 
 ```bash
 git clone https://github.com/georgelush/ultra-goal.git
 mkdir -p ~/.claude/skills
 # Copy (simple) or symlink (easy updates)
-cp -R ultra-goal ~/.claude/skills/ultra-goal
-# ln -s "$(pwd)/ultra-goal" ~/.claude/skills/ultra-goal
+cp -R ultra-goal/skills/ultra-goal ~/.claude/skills/ultra-goal
+# ln -s "$(pwd)/ultra-goal/skills/ultra-goal" ~/.claude/skills/ultra-goal
 ```
 
-Optional: install the PreToolUse hook that **blocks file edits outside** `.ultra-goal/` while `authorized_scope: none`. See [`hooks/README.md`](hooks/README.md).
+Windows (PowerShell):
+
+```powershell
+git clone https://github.com/georgelush/ultra-goal.git
+New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude\skills" | Out-Null
+Copy-Item -Recurse ultra-goal\skills\ultra-goal "$env:USERPROFILE\.claude\skills\ultra-goal"
+```
+
+Manual installs get the skill only; wire the hook yourself per
+[`hooks/README.md`](hooks/README.md).
 
 ### Grok Build
 
 ```bash
 git clone https://github.com/georgelush/ultra-goal.git
 mkdir -p ~/.grok/skills
-cp -R ultra-goal ~/.grok/skills/ultra-goal
+cp -R ultra-goal/skills/ultra-goal ~/.grok/skills/ultra-goal
 ```
 
 (Use your Grok skills path if it differs.)
@@ -89,25 +113,30 @@ cp -R ultra-goal ~/.grok/skills/ultra-goal
 ### Codex / Cursor / other agents
 
 1. Clone this repo.
-2. Put `SKILL.md` + `references/` + `hooks/` where that product loads skills, **or** paste the protocol into project instructions and point the agent at `.ultra-goal/`.
+2. Put `skills/ultra-goal/` (contains `SKILL.md` + `references/`) where that product loads skills, **or** paste the protocol into project instructions and point the agent at `.ultra-goal/`.
 3. Invoke with the same phrases below.
 
 ### Per-project (team share)
 
-```bash
+```powershell
 # inside a product repo
-mkdir -p .claude/skills
-git clone https://github.com/georgelush/ultra-goal.git .claude/skills/ultra-goal
+git clone https://github.com/georgelush/ultra-goal.git vendor/ultra-goal
+New-Item -ItemType Directory -Force .claude\skills | Out-Null
+Copy-Item -Recurse vendor\ultra-goal\skills\ultra-goal .claude\skills\ultra-goal
 # commit so teammates get the skill with the project
 ```
+
+(macOS/Linux: same layout with `mkdir -p .claude/skills` + `cp -R`.)
 
 ### Update
 
 ```bash
 cd path/to/ultra-goal
 git pull
-# if you used cp, re-copy into your skills directory
+# if you used cp, re-copy skills/ultra-goal into your skills directory
 ```
+
+Plugin installs update via `/plugin marketplace update ultra-goal`.
 
 ---
 
@@ -207,17 +236,24 @@ The agent does **not** self-declare victory. When acceptance checks have evidenc
 ultra-goal/
   README.md                 # this file
   LICENSE
-  SKILL.md                  # full protocol (what agents load)
+  .claude-plugin/
+    marketplace.json        # /plugin marketplace add georgelush/ultra-goal
+    plugin.json             # plugin manifest; auto-wires the PreToolUse hook
+  skills/
+    ultra-goal/
+      SKILL.md              # full protocol (what agents load)
+      references/
+        templates.md        # goal/plan/state/worklog/debate templates
+        project-audit.md    # how to audit code vs docs
+        architecture-visuals.md # labeled diagrams
+        ui-design.md        # UI baseline + mockups under .ultra-goal/ui/
   agents/
     openai.yaml             # optional agent UI metadata
   hooks/
-    check-authorization.sh  # optional Claude Code PreToolUse gate
-    README.md
-  references/
-    templates.md            # goal/plan/state/worklog/debate templates
-    project-audit.md        # how to audit code vs docs
-    architecture-visuals.md # labeled diagrams
-    ui-design.md            # UI baseline + mockups under .ultra-goal/ui/
+    check-authorization.sh  # Claude Code PreToolUse gate (auto with plugin)
+    README.md               # manual install + honest limitations
+  examples/
+    walkthrough/            # ILLUSTRATIVE sample .ultra-goal/ (not a real run)
 ```
 
 ---
@@ -231,16 +267,22 @@ ultra-goal/
 5. **Provider-honest** — never invent another model’s participation or unrun checks.
 6. **Handoff by default** — Markdown + git, not a proprietary session format.
 
-Full rules live in [`SKILL.md`](SKILL.md).
+Full rules live in [`SKILL.md`](skills/ultra-goal/SKILL.md). A complete
+sample `.ultra-goal/` (clearly labeled illustrative) is in
+[`examples/walkthrough/`](examples/walkthrough/).
 
 ---
 
-## Optional: hard enforcement (Claude Code)
+## Hard enforcement (Claude Code)
 
-Convention alone is enough for most setups. For a real edit block while unauthorized:
+Installed as a **plugin**, the PreToolUse gate is wired automatically — no
+setup. Manual installs wire it per [`hooks/README.md`](hooks/README.md).
 
-1. `chmod +x hooks/check-authorization.sh`
-2. Wire PreToolUse for `Edit|Write` as documented in [`hooks/README.md`](hooks/README.md)
+**Honest limits:** the hook blocks the Edit/Write tools only. Writes through
+Bash (`echo > file`, `sed -i`, `git apply`) are **not** intercepted. The gate
+is enforced convention that stops an agent forgetting the protocol — it is
+not a sandbox or security boundary. Details in
+[`hooks/README.md`](hooks/README.md).
 
 Other harnesses (Codex, Grok, …) rely on the skill text only.
 
@@ -255,7 +297,7 @@ No. It structures planning and agent handoff. You still review code and use norm
 Usually commit it. If it contains sensitive business strategy or secrets, gitignore or use a private branch.
 
 **Can I use it without installing the skill?**  
-Yes: drop `SKILL.md` into project docs and tell the agent to follow Ultra Goal and maintain `.ultra-goal/`. Installing as a skill is smoother.
+Yes: drop `skills/ultra-goal/SKILL.md` into project docs and tell the agent to follow Ultra Goal and maintain `.ultra-goal/`. Installing as a skill or plugin is smoother.
 
 **Is multi-model debate required?**  
 No. One provider doing a thorough analysis is fine; label it analysis, not debate.

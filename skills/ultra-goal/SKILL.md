@@ -45,7 +45,13 @@ Record the tier in `state.md`. Upgrade any time; never silently downgrade.
 
 1. If `.ultra-goal/` exists, read `state.md` first and ask whether to resume or replace. Never overwrite silently.
 2. If the invocation has no goal description, ask for the goal and wait.
-3. Clarify only what materially affects the design: observable outcome, non-goals, constraints.
+3. Ask the discovery questions before the audit and record the answers in `goal.md`. Never guess: if an answer is missing, ask and wait. Categories:
+   - Observable outcome: what the user will see or measure when the goal is done.
+   - Technology and stack: which choices are imposed, which are free.
+   - Existing setup: what already runs — versions, environments, services.
+   - Integrations: external systems the goal touches.
+   - Constraints: budget, deadline, compatibility, safety.
+   - Non-goals: what is explicitly out of scope.
 4. Read `references/templates.md` for the files being created now — not the whole file.
 5. Create `goal.md`, `plan.md`, `state.md`, `worklog.md`. Create every other file lazily, when the step that needs it starts.
 6. Set phase `discovery`, tier `L` (unless the user chose less), `authorized_scope: none`, and one concrete NEXT action.
@@ -102,10 +108,20 @@ The debate ends with decisions and an executable plan, not merely opinions. Pres
 
 1. Confirm `authorized_scope` in `state.md` covers the planned action; re-read `plan.md` and the latest state.
 2. Implement only within scope. If implementation reveals a material design change, pause, update the debate and synthesis, and ask for authorization again.
-3. Keep the standing docs-sync duty active.
-4. After each meaningful action, update `state.md`, `plan.md`, and `worklog.md` with observable evidence.
-5. Mark an acceptance criterion complete only when its recorded check passes.
-6. Dead-code hygiene (standing duty, set 2026-07-30): delete code that implementation has made unused — spikes, scaffolding, test-only helpers, superseded implementations, commented-out blocks — in the same step that obsoletes it, within the authorized scope. Before deleting, verify it is truly unreferenced (search callers/imports) and that checks still pass after removal; record the deletion and its evidence in the worklog. Never leave experimental code "just in case" — Git history preserves it.
+3. Test-first: where an acceptance criterion is checkable by a command or test, write the check first and show it failing before implementing. The passing run then is the evidence — no extra proof needed.
+4. Keep the standing docs-sync duty active.
+5. After each meaningful action, update `state.md`, `plan.md`, and `worklog.md` with observable evidence.
+6. Mark an acceptance criterion complete only when its recorded check passes.
+7. Dead-code hygiene (standing duty, set 2026-07-30): delete code that implementation has made unused — spikes, scaffolding, test-only helpers, superseded implementations, commented-out blocks — in the same step that obsoletes it, within the authorized scope. Before deleting, verify it is truly unreferenced (search callers/imports) and that checks still pass after removal; record the deletion and its evidence in the worklog. Never leave experimental code "just in case" — Git history preserves it.
+
+## Delegation
+
+After authorization, tasks from `plan.md` may be dispatched to subagents: a cheaper model implements, the primary model verifies. Optional. Never before authorization — the gate forbids delegating work that could implement.
+
+1. Delegate only tasks inside `authorized_scope`, one plan task at a time. The subagent prompt states the task, its constraints, and its acceptance check.
+2. A subagent's report is a claim, not evidence. It enters `worklog.md` only after the primary model has verified it by running something — the recorded check, a test, a build, a command whose output shows the change.
+3. The worklog entry names the delegate and records the primary model's own verification evidence, never the subagent's summary.
+4. Failed verification returns the task to `plan.md`. There is no "done with caveats".
 
 ## Complete
 
@@ -118,4 +134,4 @@ The debate ends with decisions and an executable plan, not merely opinions. Pres
 
 ## Optional enforcement (Claude Code)
 
-`hooks/` ships an opt-in PreToolUse hook that blocks Edit/Write outside `.ultra-goal/` while `state.md` shows `authorized_scope: none`. See `hooks/README.md` for installation. Other harnesses rely on this skill's convention.
+`hooks/` ships a PreToolUse hook that blocks Edit/Write outside `.ultra-goal/` while `state.md` shows `authorized_scope: none`. Installed automatically with the plugin; manual setup in `hooks/README.md`. It intercepts Edit/Write only — writes through Bash are not blocked (see `hooks/README.md` for the honest limits). Other harnesses rely on this skill's convention.

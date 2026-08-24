@@ -1,0 +1,23 @@
+{
+  "name": "ultra-goal",
+  "version": "1.1.0",
+  "description": "Plan, audit, debate, and persist complex multi-session goals via project-local .ultra-goal/ Markdown handoff files. Includes a PreToolUse hook that enforces the authorization gate: Edit/Write outside .ultra-goal/ is blocked while authorized_scope is none. Inert in projects without .ultra-goal/.",
+  "author": {
+    "name": "George Rusu",
+    "url": "https://github.com/georgelush"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/check-authorization.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
